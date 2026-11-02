@@ -16,6 +16,8 @@ concurrency:
 
 jobs:
   build:
+    # Skip cleanly until the repository has Pages enabled (Settings → Pages → Source: GitHub Actions).
+    if: ${{ github.event.repository.has_pages == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

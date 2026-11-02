@@ -47,6 +47,7 @@ campus share one station brain.
 
 - **CI** (`.github/workflows/ci.yml`): typecheck + build on every push/PR, `dist/` as artifact.
 - **GitHub Pages** (`.github/workflows/deploy-pages.yml`): publishes the single-file build on push to `main` / `arena/**`.
+  Enable **Settings → Pages → Source: GitHub Actions** once; the workflow skips cleanly until then.
 - Host anywhere static: Vercel/Netlify import → framework **Vite** → build `npm run build`, output `dist`.
 
 ## Artwork & brand kit
