@@ -1,0 +1,21 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+dist-electron/
+
+# Android generated build state (android/ project itself is committed)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/captures/
+android/.idea/
+*.iml
+
+# env + logs
+.env
+*.log
+.DS_Store
+dist-apk/

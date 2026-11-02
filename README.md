@@ -65,14 +65,17 @@ Brand source reference: `docs/brand-source/`.
 
 ## Development
 
+Requires **Node.js 22.12+** (Vite 8).
+
 ```bash
 npm install
 npm run dev        # studio at http://localhost:5173
 npm run typecheck
 npm run build      # single-file dist/index.html (works from GitHub Pages sub-paths)
+npm run preview    # serve the production build locally
 ```
 
-Stack: React 19 · Vite 7 · Tailwind CSS 4 · motion · lucide · @supabase/supabase-js.
+Stack: React 19 · Vite 8 · Tailwind CSS 4 · motion · lucide · @supabase/supabase-js.
 Typefaces: Playfair Display (display serif), Manrope (UI), IBM Plex Mono (studio meta).
 
 ## Campus care
