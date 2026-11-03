@@ -47,6 +47,7 @@ campus share one station brain.
 
 - **CI** (`.github/workflows/ci.yml`): typecheck + build on every push/PR, `dist/` as artifact.
 - **GitHub Pages** (`.github/workflows/deploy-pages.yml`): publishes the single-file build on push to `main` / `arena/**`.
+  Enable **Settings → Pages → Source: GitHub Actions** once; the workflow skips cleanly until then.
 - Host anywhere static: Vercel/Netlify import → framework **Vite** → build `npm run build`, output `dist`.
 
 ## Artwork & brand kit
@@ -65,14 +66,17 @@ Brand source reference: `docs/brand-source/`.
 
 ## Development
 
+Requires **Node.js 22.12+** (Vite 8).
+
 ```bash
 npm install
 npm run dev        # studio at http://localhost:5173
 npm run typecheck
 npm run build      # single-file dist/index.html (works from GitHub Pages sub-paths)
+npm run preview    # serve the production build locally
 ```
 
-Stack: React 19 · Vite 7 · Tailwind CSS 4 · motion · lucide · @supabase/supabase-js.
+Stack: React 19 · Vite 8 · Tailwind CSS 4 · motion · lucide · @supabase/supabase-js.
 Typefaces: Playfair Display (display serif), Manrope (UI), IBM Plex Mono (studio meta).
 
 ## Campus care

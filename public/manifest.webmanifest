@@ -1,0 +1,18 @@
+{
+  "name": "IUEA Community Radio — The Voice of Kansanga",
+  "short_name": "IUEA Radio",
+  "description": "Podcasts, music and campus community for the students and staff of International University of East Africa, Kansanga, Kampala. Learning to Succeed.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0b0708",
+  "theme_color": "#7a0000",
+  "categories": ["music", "education", "social"],
+  "icons": [
+    { "src": "./brand/icon-180.png", "sizes": "180x180", "type": "image/png" },
+    { "src": "./brand/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "./brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "./art/station-cover.png", "sizes": "1600x1600", "type": "image/png" }
+  ]
+}
