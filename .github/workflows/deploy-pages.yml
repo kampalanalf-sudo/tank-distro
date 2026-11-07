@@ -1,8 +1,8 @@
-name: deploy-pages
+name: Publish restaurant and existing homepage
 
 on:
   push:
-    branches: ["main", "arena/**"]
+    branches: ["arena/40771494-tank-distro"]
   workflow_dispatch:
 
 permissions:
@@ -10,34 +10,72 @@ permissions:
   pages: write
   id-token: write
 
+# Pages publishes one artifact for the entire repository. Always include both sites.
 concurrency:
-  group: pages-${{ github.ref }}
-  cancel-in-progress: true
+  group: github-pages
+  cancel-in-progress: false
+
+env:
+  # Preserve the original homepage source independently of restaurant changes.
+  # This is the existing site's deployed commit, not a second working branch.
+  HOMEPAGE_REF: bc5ffe7537ad2acdaa1e20bd0509cfb482203c9e
 
 jobs:
   build:
-    # Skip cleanly until the repository has Pages enabled (Settings → Pages → Source: GitHub Actions).
-    if: ${{ github.event.repository.has_pages == true }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out restaurant app
+        uses: actions/checkout@v4
+      - name: Check out preserved homepage
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.HOMEPAGE_REF }}
+          path: .legacy-homepage
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+          cache-dependency-path: |
+            package-lock.json
+            .legacy-homepage/package-lock.json
+      - name: Install restaurant dependencies
+        run: npm ci
+      - name: Test restaurant app
+        run: npm test
+      - name: Build restaurant app
+        run: npm run build
+        env:
+          VITE_DELIVERY_MODE: live
+      - name: Build preserved homepage
+        working-directory: .legacy-homepage
+        run: |
+          npm ci
+          npm run build
+      - name: Assemble both sites
+        run: |
+          mkdir -p .pages-artifact/juicy-chicken
+          cp -a .legacy-homepage/dist/. .pages-artifact/
+          cp -a dist/. .pages-artifact/juicy-chicken/
+          touch .pages-artifact/.nojekyll
+          test -f .pages-artifact/index.html
+          test -f .pages-artifact/juicy-chicken/index.html
+          test -f .pages-artifact/juicy-chicken/food/chicken.jpg
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload complete site
+        uses: actions/upload-pages-artifact@v3
         with:
-          path: dist/
+          path: .pages-artifact/
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+      url: ${{ steps.deployment.outputs.page_url }}juicy-chicken/
     steps:
-      - id: deployment
+      - name: Deploy both sites
+        id: deployment
         uses: actions/deploy-pages@v4
