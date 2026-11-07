@@ -1,89 +1,80 @@
-# IUEA Community Radio 🎙️
+# Charbroiled Juicy Chicken
 
-**The voice of Kansanga.** A radio station for the students and staff of
-**International University of East Africa (IUEA)** — Plot 1112/1121 Kansanga, Ggaba Road,
-Kampala, Uganda. Education *and* entertainment: podcasts, music and the social heartbeat of
-campus, streamed worldwide. Classy, glossy, maroon & gold.
+A Kampala fast-food delivery storefront with a connected Supabase order backend, protected admin/rider workspaces, a progress slider, and opt-in GPS delivery tracking.
 
-> Brand: IUEA maroon `#7A0000`, tulip gold `#EEAF3D`, black. Official crest & wordmark of
-> IUEA (motto: *“Learning to Succeed”*) composited over original glossy studio artwork.
+The restaurant name, orange/gold/brown palette and simplified SVG badge are based on the supplied logo screenshot. The menu, photographs, prices and delivery estimates remain sample content for the owner to verify.
 
----
+## Run
 
-## What the station does
-
-| Section | What listeners & presenters get |
-| --- | --- |
-| **On Air** | Live player with real spectrum visualizer, live show detection from the schedule (EAT), listener count, and the **shout wall** (live chat with studio messages). |
-| **Podcasts** | Five shows with generated glossy cover art and real spoken episodes: *Kansanga Breakfast Run*, *The Syllabus* (study-skills hour), *Ggaba Road Grooves*, *Night Prep*, *Guild Square*. |
-| **Music** | Hot / warm / classic rotation (Ugandan hits + campus artists), **request line** with dedications and community voting, played/queued status for the studio. |
-| **Schedule** | Weekly broadcast grid in East Africa Time with a live “on air now” line and today highlight. |
-| **Community** | Social wall (posts, shoutouts, announcements, club news) with likes + comments, campus **polls**, club spotlights — the social concept of the station. |
-| **Studio** | Presenter console: go live, play episodes/tracks, clear the request queue, publish as Studio, talk to the shout wall. |
-| **Settings** | Listener profile, **Supabase** connection, live stream URL, station contacts, and the downloadable **brand & artwork kit**. |
-
-### Audio sources (never silent)
-1. **Real stream** — set any Icecast / Zeno.fm / Radio.co URL in Settings (or `VITE_STREAM_URL`).
-2. **On demand** — podcast episodes & licensed tracks (four spoken episodes ship in `public/audio/`).
-3. **Studio demo bed** — a built-in WebAudio Afro-soul mix (chords, kick, shaker, bass, pluck)
-   used automatically until a stream exists, so the station always transmits something beautiful.
-
-Everything routes through one `AnalyserNode`, so the gold visualizer is always truthful.
-
-## Shared cloud — Supabase (all listeners, one backend)
-
-1. Create a free project at [supabase.com](https://supabase.com) → copy **Project URL** + **anon public key**.
-2. SQL Editor → run **`supabase/schema.sql`** (12 tables, open prototype RLS policies, realtime publication).
-3. Optional: run **`supabase/seed.sql`** — or just connect: the app **auto-seeds an empty project** on first connect.
-4. In the app → **Settings → Shared cloud** → paste URL + key → **Connect**.
-   From then on: now-playing, shout wall, requests, posts, polls and listener presence sync live
-   across every device via Supabase **Realtime** (postgres_changes).
-5. Hosted deploys can pre-configure with `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (see `.env.example`).
-
-Without Supabase the app is fully functional **local-first**; the cloud simply makes the whole
-campus share one station brain.
-
-## GitHub
-
-- **CI** (`.github/workflows/ci.yml`): typecheck + build on every push/PR, `dist/` as artifact.
-- **GitHub Pages** (`.github/workflows/deploy-pages.yml`): publishes the single-file build on push to `main` / `arena/**`.
-  Enable **Settings → Pages → Source: GitHub Actions** once; the workflow skips cleanly until then.
-- Host anywhere static: Vercel/Netlify import → framework **Vite** → build `npm run build`, output `dist`.
-
-## Artwork & brand kit
-
-All artwork composites the **actual IUEA crest/wordmark** over original glossy studio art
-(generated backdrops + ImageMagick compositing), in `public/art/`:
-
-- `station-cover.png` 1600×1600 — podcast-feed cover
-- `social-banner.png` 1600×900 — social header
-- `show-*.png` 1000×1000 — per-show covers (breakfast, syllabus, grooves, night, guild)
-- `bg-*.jpg` — glossy backdrop masters
-- `public/brand/` — official logo (transparent), crest, app icons, favicon
-
-Downloadables are linked in-app under **Settings → Brand & artwork kit**.
-Brand source reference: `docs/brand-source/`.
-
-## Development
-
-Requires **Node.js 22.12+** (Vite 8).
+Requires Node.js 22.12 or later.
 
 ```bash
-npm install
-npm run dev        # studio at http://localhost:5173
+npm ci
+npm run dev        # 0.0.0.0:5173, supports Arena live preview
+npm test           # 18 interaction and GPS lifecycle tests
 npm run typecheck
-npm run build      # single-file dist/index.html (works from GitHub Pages sub-paths)
-npm run preview    # serve the production build locally
+npm run build      # deploy the complete dist/ folder
 ```
 
-Stack: React 19 · Vite 8 · Tailwind CSS 4 · motion · lucide · @supabase/supabase-js.
-Typefaces: Playfair Display (display serif), Manrope (UI), IBM Plex Mono (studio meta).
+## GitHub Pages website
 
-## Campus care
+The restaurant is published at **https://kampalanalf-sudo.github.io/tank-distro/juicy-chicken/**. The existing homepage at `/tank-distro/` is preserved. See [GitHub Pages deployment](docs/GITHUB_PAGES.md).
 
-- Shoutouts are read on air; kindness is part of the format.
-- Requests credit the requester’s hall/faculty/unit.
-- The RLS policies are open prototype policies for one shared campus backend — tighten them
-  (authenticated students/staff) before going to production with real personal data.
+## App entry points
 
-**Learning to Succeed — on air, online, on campus.** 🇺🇬
+- Storefront: `/`
+- Admin: `/#admin`
+- Rider: `/#rider`
+- Customer tracking: `/#track` or **My orders**
+
+The storefront footer links to each workspace. **Explore sample dashboard** offers an explicitly labelled local preview without access to real orders or GPS.
+
+## Connected backend
+
+A separate free Supabase project, **Charbroiled Juicy Chicken**, has been provisioned with approval. Restaurant business data stays separate from TankTickets. The restaurant now reuses its DGateway merchant setup through a new isolated server-side bridge; existing ticket tables and handlers are unchanged. Checkout now sends orders to this backend, which calculates prices, stores customer delivery details, and protects staff reads and mutations with Auth, row policies and validated RPCs.
+
+**First admin access still requires activation.** Register and verify your staff email, then have the project owner grant the admin role. There is no default admin password or public self-promotion. See the complete [setup and operations guide](docs/DELIVERY_SETUP.md), including SQL instructions and email-provider restrictions.
+
+Cash on delivery and DGateway Mobile Money are available. Payment confirmation is verified server-side; pending/unknown requests are not automatically charged again. No SMS/WhatsApp/email order notifications, native background GPS, route planning or live ETA calculation is connected. The owner must confirm the real menu and operational policies before accepting actual deliveries.
+
+## Features
+
+- Responsive menu, search, categories, price sorting, favourites and persistent cart
+- UGX prices and Kampala delivery areas
+- Connected checkout with server-validated prices and idempotent same-request retries
+- Protected admin inbox with search, status filters, customer details, items and kitchen notes
+- Six-stage progress slider, explicit save, status history and cancellation
+- Rider assignment and protected rider-only delivery controls
+- Opt-in browser GPS; last location, timestamps, accuracy and stale/paused warnings
+- Leaflet/OpenStreetMap map, with coordinates and link if tiles cannot load
+- Private customer tracking code and automatically refreshed progress
+- Legacy device-only demo orders remain labelled and are never uploaded
+
+## GPS requirements
+
+The assigned rider must sign in on an HTTPS page, mark a ready order picked up, consent to sharing, and allow browser location access. **Keep the rider page visible.** Browser GPS can be suspended in the background; reliable screen-off tracking needs a native app. Coordinates are shared only during the assigned delivery. Completion/cancellation deletes its stored GPS point.
+
+## Source guide
+
+- `src/App.tsx`: storefront, cart and checkout
+- `src/delivery/api.ts`: publishable configuration, types and backend calls
+- `src/delivery/Portal.tsx`: staff authentication, admin dashboard and rider controls
+- `src/delivery/Tracking.tsx`: customer tracker, progress and map
+- `src/delivery/useRiderGps.ts`: consent-triggered GPS lifecycle
+- `supabase/delivery.sql`, `supabase/delivery-hardening.sql`: deployed restaurant schema/RPC migrations
+- `supabase/delivery-tests.sql`: transactional backend assertions, already verified on the connected project
+- `tests/`: mocked storefront, backend error handling, access-gating and GPS tests
+
+Historical radio code, assets and database scripts remain in the repository but are not used by this app. Do not apply the old radio `schema.sql` as the restaurant backend.
+
+## Branding and customisation
+
+The badge at `public/brand/charbroiled-juicy-chicken.svg` is a clean, simplified vector recreation of the screenshot, not the original artwork. Replace it with the original logo when available. Generated menu photographs are illustrative.
+
+Update the sample `products` and `areas` in `src/App.tsx` **and** their server equivalents (`delivery_menu`, `delivery_areas`) when confirming the menu; checkout always uses the server prices. The client includes only a public publishable Supabase key. Never add a service-role key or database password to the frontend.
+
+Before production, activate staff accounts, configure SMTP/auth redirects, add robust anti-abuse protection and privacy/retention policies, and test real orders and GPS on separate phones. See [docs/DELIVERY_SETUP.md](docs/DELIVERY_SETUP.md).
+
+## Mobile Money operations
+
+See [DGateway payment setup and recovery](docs/DGATEWAY_PAYMENTS.md). Merchant credentials stay in TankTickets; no private payment key is included in the browser or repository. Automated checks use fake transactions and rollback-only fixtures, not real money. A supervised live-wallet acceptance test is still required.

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" role="img" aria-labelledby="title desc">
+  <title id="title">Charbroiled Juicy Chicken</title>
+  <desc id="desc">Simplified recreation of the supplied restaurant badge: a golden rotisserie chicken on an orange centre, with gold lettering on a dark brown circular seal.</desc>
+  <defs>
+    <linearGradient id="brown" x2=".8" y2="1"><stop stop-color="#513122"/><stop offset="1" stop-color="#251910"/></linearGradient>
+    <linearGradient id="gold" x2=".7" y2="1"><stop stop-color="#fff0a3"/><stop offset=".48" stop-color="#deb657"/><stop offset="1" stop-color="#ae762b"/></linearGradient>
+    <radialGradient id="orange"><stop stop-color="#f7922c"/><stop offset="1" stop-color="#d65c1c"/></radialGradient>
+    <path id="topArc" d="M 39,160 A 112,112 0 0,1 261,160"/>
+    <path id="bottomArc" d="M 55,220 Q 150,291 245,220"/>
+  </defs>
+  <circle cx="150" cy="150" r="146" fill="url(#brown)" stroke="url(#gold)" stroke-width="6"/>
+  <circle cx="150" cy="150" r="136" fill="none" stroke="#c39544" stroke-width="1" opacity=".55"/>
+  <circle cx="150" cy="153" r="88" fill="url(#orange)"/>
+  <text fill="url(#gold)" font-family="Georgia,serif" font-size="29" font-weight="700" letter-spacing=".5"><textPath href="#topArc" startOffset="50%" text-anchor="middle">Charbroiled Juicy</textPath></text>
+  <path d="M52 153 H250" stroke="#9a601e" stroke-width="9" stroke-linecap="round"/>
+  <path d="M52 150 H250" stroke="url(#gold)" stroke-width="5" stroke-linecap="round"/>
+  <g fill="url(#gold)" stroke="#81541e" stroke-width="2" stroke-linejoin="round">
+    <path d="M104 129 88 116 79 116 Q72 123 67 117 Q63 112 68 107 Q62 102 66 98 Q72 92 79 103 L91 104 117 116Z"/>
+    <path d="M181 116 189 100 198 106 198 117 209 128 201 142Z"/>
+    <path d="M96 157 Q90 135 110 117 Q131 101 159 111 Q182 115 197 135 Q215 151 201 171 Q194 188 167 188 L123 187 Q98 183 96 157Z"/>
+    <path d="M148 165 Q163 153 182 159 L207 175 Q214 183 204 189 Q193 197 177 190 L150 179Z"/>
+    <path d="M129 142 Q143 141 145 155 Q146 167 132 178 L104 193 94 203 Q87 213 82 205 Q76 207 74 201 Q70 193 82 191 L104 170 Q112 143 129 142Z"/>
+  </g>
+  <path d="M163 125 Q183 129 189 144" fill="none" stroke="#fff0aa" stroke-width="3" stroke-linecap="round" opacity=".6"/>
+  <g fill="none" stroke="#f5d889" stroke-width="2" stroke-linecap="round" opacity=".9"><path d="M125 218 Q118 210 126 202"/><path d="M145 223 Q138 213 146 204"/><path d="M165 218 Q158 210 166 202"/></g>
+  <path d="M109 231 Q119 222 129 231 Q141 219 152 231 Q162 221 174 232 Q183 225 191 233 L186 241 H115Z" fill="url(#gold)"/>
+  <text fill="#fff1c8" font-family="Arial,sans-serif" font-size="25" font-weight="800" letter-spacing="2"><textPath href="#bottomArc" startOffset="50%" text-anchor="middle">CHICKEN</textPath></text>
+</svg>
