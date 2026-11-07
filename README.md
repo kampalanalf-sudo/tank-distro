@@ -18,7 +18,7 @@ npm run build      # deploy the complete dist/ folder
 
 ## GitHub Pages website
 
-The prepared restaurant publication URL is **https://kampalanalf-sudo.github.io/tank-distro/juicy-chicken/**. The existing homepage at `/tank-distro/` is preserved. See [GitHub Pages deployment](docs/GITHUB_PAGES.md).
+The restaurant is published at **https://kampalanalf-sudo.github.io/tank-distro/juicy-chicken/**. The existing homepage at `/tank-distro/` is preserved. See [GitHub Pages deployment](docs/GITHUB_PAGES.md).
 
 ## App entry points
 

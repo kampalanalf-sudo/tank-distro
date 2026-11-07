@@ -23,7 +23,7 @@ The user selected a **new sub-page**, not replacement of the existing homepage. 
 
 Vite uses a relative base (`./`), so fonts, food photographs, logo and manifest work under the nested URL. The admin/rider/tracking routes use URL fragments and need no server rewrites. The HTTPS Pages origin supports browser geolocation; the rider must still consent and keep the page visible.
 
-The repository's Pages source must be set to **GitHub Actions**. The old standalone Jekyll workflow is removed/disabled to avoid overwriting the combined artifact. The Pages environment must allow deployments from the active publication branch `arena/40771494-tank-distro`. Pushes to that branch rebuild and republish both applications. A manual workflow run can also be used with that branch selected.
+The repository's Pages source is **GitHub Actions**. The old standalone Jekyll workflow is removed/disabled to avoid overwriting the combined artifact. The Pages environment allows deployments from the active publication branch `arena/40771494-tank-distro`. Pushes to that branch rebuild and republish both applications. A manual workflow run can also be used with that branch selected.
 
 The pinned original homepage remains independent from the restaurant app. To deliberately update the original site's source in the future, change `HOMEPAGE_REF` to the intended original-site commit and redeploy. Never publish only the restaurant artifact to this repository's Pages deployment: that would remove the preserved root homepage.
 
@@ -35,12 +35,12 @@ Supabase's Site URL and allowed confirmation redirect URLs must include the exac
 
 Menu/prices remain sample content until confirmed by the restaurant owner. Staff onboarding, production SMTP, anti-abuse protection, and real-device delivery testing remain necessary before public operations.
 
-## One-time settings change required
+## Repository settings and verified deployment
 
-The connected GitHub integration returned HTTP 403 when updating Pages settings and the environment deployment branch policy. The source and builds are prepared, but these changes must be made by a repository administrator:
+The connected GitHub integration returned HTTP 403 when updating Pages settings and the environment deployment branch policy. The owner saved the required settings, and they were verified through the GitHub API. For reference, the required configuration is:
 
 1. Open https://github.com/kampalanalf-sudo/tank-distro/settings/pages and set **Build and deployment → Source → GitHub Actions**.
 2. Open https://github.com/kampalanalf-sudo/tank-distro/settings/environments, select **github-pages**, and allow **arena/40771494-tank-distro** under deployment branches/tags. To prevent old `main` workflows from replacing the combined site, use this publication branch as the allowed branch. This does not change repository branch protection.
 3. Run the **Publish restaurant and existing homepage** workflow with that branch selected, or ask the agent to rerun it after the settings are saved.
 
-The old standalone Jekyll workflow was successfully disabled, but the integration could not change the Pages source or branch rule. Do not claim the new URL is live until its deployment succeeds.
+The old standalone Jekyll workflow was successfully disabled. Deployment [42376908696](https://github.com/kampalanalf-sudo/tank-distro/actions/runs/42376908696) succeeded after the owner updated the settings. The restaurant page and preserved original homepage were fetched and verified on 7 November 2026. The restaurant's Supabase Site URL and confirmation allowlist also include the new restaurant Pages address.
