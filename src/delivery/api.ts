@@ -57,7 +57,25 @@ export type RiderLocation = {
   rider_id?: string;
 };
 export type DeliveryEvent = { status: OrderStatus; created_at: string };
-export type DeliveryOrder = {
+export type PaymentMethod = "cash" | "mobile_money";
+export type PaymentState = "unpaid" | "pending" | "paid" | "failed";
+export type PaymentSummary = {
+  id: string;
+  status: "initiating" | "pending" | "unknown" | "completed" | "failed";
+  reference: string | null;
+  external_ref: string;
+  amount: number;
+  currency: "UGX";
+  created_at: string;
+  verified_at: string | null;
+};
+export type PaymentFields = {
+  payment_method?: PaymentMethod;
+  payment_status?: PaymentState;
+  payment_review_required?: boolean;
+  payment?: PaymentSummary | null;
+};
+export type DeliveryOrder = PaymentFields & {
   id: string;
   customer_name: string;
   phone: string;
@@ -76,12 +94,15 @@ export type DeliveryOrder = {
 export type Tracking = Pick<
   DeliveryOrder,
   "id" | "status" | "total" | "area" | "items" | "created_at" | "updated_at"
-> & {
-  location: RiderLocation | null;
-  rider_name: string | null;
-  events: DeliveryEvent[];
-};
+> &
+  PaymentFields & {
+    location: RiderLocation | null;
+    rider_name: string | null;
+    events: DeliveryEvent[];
+  };
 export type OrderReceipt = {
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: PaymentState;
   id: string;
   token: string;
   total: number;
@@ -91,6 +112,7 @@ export type OrderReceipt = {
   cloud: true;
 };
 export type CheckoutInput = {
+  paymentMethod?: PaymentMethod;
   name: string;
   phone: string;
   address: string;
@@ -119,6 +141,7 @@ export async function placeOrder(
     p_items: input.items,
     p_request_id: keys.requestId,
     p_tracking_token: keys.token,
+    p_payment_method: input.paymentMethod || "cash",
   });
   if (error) throw new Error(error.message);
   return {
@@ -129,6 +152,8 @@ export async function placeOrder(
     items: (data.items as LineItem[]).reduce((n, i) => n + i.quantity, 0),
     area: data.area,
     cloud: true,
+    paymentMethod: data.payment_method,
+    paymentStatus: data.payment_status,
   };
 }
 export async function trackOrder(id: string, token: string): Promise<Tracking> {
@@ -159,7 +184,7 @@ export async function getWorkspace() {
     deliveryClient
       .from("delivery_orders")
       .select(
-        "id,customer_name,phone,address,area,notes,items,subtotal,delivery_fee,total,status,rider_id,created_at,updated_at",
+        "id,customer_name,phone,address,area,notes,items,subtotal,delivery_fee,total,status,rider_id,created_at,updated_at,payment_method,payment_status,payment_review_required",
       )
       .order("created_at", { ascending: false })
       .limit(200),
@@ -235,3 +260,59 @@ export function locationHealth(
 export const shortId = (id: string) =>
   id.startsWith("example") ? "EXAMPLE" : id.slice(0, 8).toUpperCase();
 export const ugx = (n: number) => `UGX ${n.toLocaleString("en-UG")}`;
+
+async function paymentAction(body: Record<string, unknown>) {
+  const { data, error } = await deliveryClient.functions.invoke(
+    "delivery-payment",
+    { body },
+  );
+  if (error) {
+    const context = (error as { context?: Response }).context;
+    const message =
+      context instanceof Response
+        ? await context.json().catch(() => null)
+        : null;
+    throw new Error(
+      message?.error ||
+        "Payment verification is unavailable. Do not pay again until you check this order’s status.",
+    );
+  }
+  if (data?.error) throw new Error(data.error);
+  return data;
+}
+export async function paymentAvailability(): Promise<boolean> {
+  const data = await paymentAction({ action: "health" });
+  return data.available === true;
+}
+export async function startMobilePayment(
+  id: string,
+  token: string,
+  phone: string,
+): Promise<Tracking> {
+  const data = await paymentAction({
+    action: "start",
+    order_id: id,
+    tracking_token: token,
+    phone,
+  });
+  return data.order;
+}
+export async function checkMobilePayment(
+  id: string,
+  token: string,
+): Promise<Tracking> {
+  const data = await paymentAction({
+    action: "status",
+    order_id: id,
+    tracking_token: token,
+  });
+  return data.order;
+}
+export async function chooseCash(id: string, token: string): Promise<Tracking> {
+  const { error } = await deliveryClient.rpc("choose_delivery_cash", {
+    p_order_id: id,
+    p_tracking_token: token,
+  });
+  if (error) throw new Error(error.message);
+  return trackOrder(id, token);
+}

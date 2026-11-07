@@ -44,6 +44,8 @@ jobs:
         run: npm ci
       - name: Test restaurant app
         run: npm test
+      - name: Verify payment configuration without charging
+        run: node scripts/payment-smoke.mjs
       - name: Build restaurant app
         run: npm run build
         env:

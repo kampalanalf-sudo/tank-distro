@@ -1,3 +1,4 @@
+import { PaymentBadge } from "./Payments";
 import { useCallback, useEffect, useState } from "react";
 import {
   AlertCircle,
@@ -891,6 +892,9 @@ function Workspace({
                               </span>
                               <strong>{ugx(o.total)}</strong>
                             </div>
+                            <span className="order-row-payment">
+                              <PaymentBadge {...o} />
+                            </span>
                           </button>
                         ))
                       )}
@@ -943,6 +947,25 @@ function Workspace({
                       </div>
                       <div className="detail-body">
                         <Progress status={order.status} events={events} />
+                        <div
+                          className={`admin-payment-info ${order.payment_review_required ? "review" : ""}`}
+                        >
+                          <PaymentBadge {...order} />
+                          <p>
+                            {order.payment_status === "paid"
+                              ? "Payment verified by DGateway. Do not collect cash from this customer."
+                              : order.payment_method === "mobile_money"
+                                ? "Do not prepare or dispatch until DGateway confirms payment. Customers can check their existing payment from private tracking. Never ask for a customer's PIN."
+                                : "Collect cash on delivery. No online payment has been verified."}
+                          </p>
+                          {order.payment_review_required && (
+                            <p>
+                              Payment review required: check the gateway journal
+                              for a late or duplicate settlement. Cancellation
+                              does not automatically refund money.
+                            </p>
+                          )}
+                        </div>
                         {actor.role === "admin" && (
                           <StatusEditor
                             key={`${order.id}-${order.status}`}
@@ -1010,7 +1033,12 @@ function Workspace({
                             <strong>{ugx(order.delivery_fee)}</strong>
                           </div>
                           <div>
-                            <strong>Total · cash on delivery</strong>
+                            <strong>
+                              Total ·{" "}
+                              {order.payment_method === "mobile_money"
+                                ? "Mobile Money"
+                                : "cash on delivery"}
+                            </strong>
                             <strong>{ugx(order.total)}</strong>
                           </div>
                         </div>
@@ -1122,8 +1150,12 @@ function StatusEditor({
   const index = steps.indexOf(order.status as (typeof steps)[number]);
   const [value, setValue] = useState(Math.max(0, index));
   if (["delivered", "cancelled"].includes(order.status)) return null;
+  const paymentBlocked =
+    order.payment_method === "mobile_money" && order.payment_status !== "paid";
   const valid =
-    value === index + 1 && (steps[value] !== "on_the_way" || !!order.rider_id);
+    !paymentBlocked &&
+    value === index + 1 &&
+    (steps[value] !== "on_the_way" || !!order.rider_id);
   return (
     <div className="status-editor">
       <div>
@@ -1146,13 +1178,15 @@ function StatusEditor({
         <span>Delivered</span>
       </div>
       <p>
-        {value > index + 1
-          ? "Advance one stage at a time."
-          : value < index
-            ? "Progress cannot move backwards."
-            : steps[value] === "on_the_way" && !order.rider_id
-              ? "Assign a rider before dispatch."
-              : "Slide to the next stage, then save to notify tracking."}
+        {paymentBlocked
+          ? "Mobile Money is not verified. Wait for payment before progressing this order."
+          : value > index + 1
+            ? "Advance one stage at a time."
+            : value < index
+              ? "Progress cannot move backwards."
+              : steps[value] === "on_the_way" && !order.rider_id
+                ? "Assign a rider before dispatch."
+                : "Slide to the next stage, then save to notify tracking."}
       </p>
       <div className="status-actions">
         <button
@@ -1167,7 +1201,11 @@ function StatusEditor({
           disabled={busy}
           className="cancel-order"
           onClick={() => {
-            if (window.confirm("Cancel this order? This cannot be undone."))
+            if (
+              window.confirm(
+                "Cancel this order? This cannot be undone. Any payment already made is NOT automatically refunded. Reconcile pending or completed Mobile Money separately.",
+              )
+            )
               void onSave(order, "cancelled");
           }}
         >

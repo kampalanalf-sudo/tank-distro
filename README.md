@@ -31,11 +31,11 @@ The storefront footer links to each workspace. **Explore sample dashboard** offe
 
 ## Connected backend
 
-A separate free Supabase project, **Charbroiled Juicy Chicken**, has been provisioned with approval. The existing `tanktickets` project is unchanged. Checkout now sends orders to this backend, which calculates prices, stores customer delivery details, and protects staff reads and mutations with Auth, row policies and validated RPCs.
+A separate free Supabase project, **Charbroiled Juicy Chicken**, has been provisioned with approval. Restaurant business data stays separate from TankTickets. The restaurant now reuses its DGateway merchant setup through a new isolated server-side bridge; existing ticket tables and handlers are unchanged. Checkout now sends orders to this backend, which calculates prices, stores customer delivery details, and protects staff reads and mutations with Auth, row policies and validated RPCs.
 
 **First admin access still requires activation.** Register and verify your staff email, then have the project owner grant the admin role. There is no default admin password or public self-promotion. See the complete [setup and operations guide](docs/DELIVERY_SETUP.md), including SQL instructions and email-provider restrictions.
 
-No online payment processing, SMS/WhatsApp/email order notifications, native background GPS, route planning or live ETA calculation is connected. The owner must confirm the real menu and operational policies before accepting actual deliveries.
+Cash on delivery and DGateway Mobile Money are available. Payment confirmation is verified server-side; pending/unknown requests are not automatically charged again. No SMS/WhatsApp/email order notifications, native background GPS, route planning or live ETA calculation is connected. The owner must confirm the real menu and operational policies before accepting actual deliveries.
 
 ## Features
 
@@ -74,3 +74,7 @@ The badge at `public/brand/charbroiled-juicy-chicken.svg` is a clean, simplified
 Update the sample `products` and `areas` in `src/App.tsx` **and** their server equivalents (`delivery_menu`, `delivery_areas`) when confirming the menu; checkout always uses the server prices. The client includes only a public publishable Supabase key. Never add a service-role key or database password to the frontend.
 
 Before production, activate staff accounts, configure SMTP/auth redirects, add robust anti-abuse protection and privacy/retention policies, and test real orders and GPS on separate phones. See [docs/DELIVERY_SETUP.md](docs/DELIVERY_SETUP.md).
+
+## Mobile Money operations
+
+See [DGateway payment setup and recovery](docs/DGATEWAY_PAYMENTS.md). Merchant credentials stay in TankTickets; no private payment key is included in the browser or repository. Automated checks use fake transactions and rollback-only fixtures, not real money. A supervised live-wallet acceptance test is still required.

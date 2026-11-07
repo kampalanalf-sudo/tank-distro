@@ -1,4 +1,10 @@
-import { deliveryEnabled, newOrderKeys, placeOrder } from "./delivery/api";
+import {
+  deliveryEnabled,
+  newOrderKeys,
+  placeOrder,
+  type PaymentMethod,
+} from "./delivery/api";
+import { CheckoutPaymentChoice } from "./delivery/Payments";
 import { TrackingCard } from "./delivery/Tracking";
 import "./delivery/delivery.css";
 import { useEffect, useRef, useState } from "react";
@@ -149,6 +155,8 @@ function stored<T>(key: string, fallback: T): T {
 }
 type Order = {
   cloud?: boolean;
+  paymentMethod?: PaymentMethod;
+  paymentStatus?: "unpaid" | "pending" | "paid" | "failed";
   token?: string;
   id: string;
   total: number;
@@ -172,6 +180,8 @@ export default function App() {
   const [modal, setModal] = useState<
     "cart" | "location" | "about" | "orders" | null
   >(null);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("cash");
+  const [successPhone, setSuccessPhone] = useState("");
   const [checkout, setCheckout] = useState(false);
   const [checkoutBusy, setCheckoutBusy] = useState(false);
   const [checkoutError, setCheckoutError] = useState("");
@@ -277,6 +287,7 @@ export default function App() {
             address: String(form.get("address")),
             area,
             notes: String(form.get("notes") || ""),
+            paymentMethod,
             items: products
               .filter((p) => cart[p.id])
               .map((p) => ({ id: p.id, quantity: cart[p.id] })),
@@ -293,6 +304,7 @@ export default function App() {
         };
       }
       setOrders((prev) => [order, ...prev.filter((o) => o.id !== order.id)]);
+      setSuccessPhone(String(form.get("phone") || ""));
       setSuccess(order);
       setCart({});
       setCheckout(false);
@@ -987,11 +999,17 @@ export default function App() {
                   </div>
                   <p className="demo-note">
                     {success.cloud
-                      ? "Payment is due on delivery. Wait for the restaurant to confirm your order. Keep your private tracking details safe."
+                      ? success.paymentMethod === "mobile_money"
+                        ? "Your order is saved. Complete your Mobile Money payment below, then wait for restaurant confirmation. Keep your private tracking details safe."
+                        : "Payment is due on delivery. Wait for the restaurant to confirm your order. Keep your private tracking details safe."
                       : "This is a demo, not a live order. Nothing has been sent to a restaurant and you haven’t been charged."}
                   </p>
                   {success.cloud && success.token && (
-                    <TrackingCard id={success.id} token={success.token} />
+                    <TrackingCard
+                      id={success.id}
+                      token={success.token}
+                      initialPhone={successPhone}
+                    />
                   )}
                   <button
                     className="primary full-width"
@@ -1085,17 +1103,21 @@ export default function App() {
                       rows={2}
                     />
                   </label>
-                  <div className="info-box">
-                    <ShoppingBag size={22} />
-                    <div>
-                      <strong>
-                        {deliveryEnabled
-                          ? "Cash on delivery"
-                          : "Cash on delivery · Demo only"}
-                      </strong>
-                      <p>No online payment is collected.</p>
+                  {deliveryEnabled ? (
+                    <CheckoutPaymentChoice
+                      value={paymentMethod}
+                      onChange={setPaymentMethod}
+                      disabled={checkoutBusy}
+                    />
+                  ) : (
+                    <div className="info-box">
+                      <ShoppingBag size={22} />
+                      <div>
+                        <strong>Cash on delivery · Demo only</strong>
+                        <p>No online payment is collected.</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                   <div className="total-row">
                     <strong>Total including delivery</strong>
                     <strong>UGX {money(subtotal + fee)}</strong>
@@ -1119,7 +1141,9 @@ export default function App() {
                     {checkoutBusy
                       ? "Sending your order…"
                       : deliveryEnabled
-                        ? "Place order"
+                        ? paymentMethod === "mobile_money"
+                          ? "Continue to Mobile Money"
+                          : "Place order"
                         : "Place demo order"}{" "}
                     <ArrowRight size={18} />
                   </button>
@@ -1197,7 +1221,7 @@ export default function App() {
                     </button>
                     <p className="demo-note">
                       {deliveryEnabled
-                        ? "Sent securely to the restaurant. Cash on delivery. Menu and delivery fees require restaurant verification."
+                        ? "Cash or secure Mobile Money available at checkout. Menu and delivery fees require restaurant verification."
                         : "A little preview of your next favourite meal. Demo orders only."}
                     </p>
                   </div>

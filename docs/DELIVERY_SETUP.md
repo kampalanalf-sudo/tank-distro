@@ -2,7 +2,7 @@
 
 ## Connected project
 
-A **separate free Supabase project**, **Charbroiled Juicy Chicken** (`nbzjrirqstfevobtxkuf`, EU West), has been created with the user's approval. The existing `tanktickets` project was not modified.
+A **separate free Supabase project**, **Charbroiled Juicy Chicken** (`nbzjrirqstfevobtxkuf`, EU West), has been created with the user's approval. Restaurant business data remains separate from `tanktickets`. At the user’s request, a dedicated payment bridge and private journal were added to TankTickets to reuse its existing DGateway merchant secrets. Existing ticket tables, payment handlers and global webhook configuration were not changed.
 
 The restaurant tables and RPC functions are deployed. Only the project's **publishable** key and URL are included in the client. The app never needs a database password or service-role key. No real staff account has been created or granted access yet.
 
@@ -65,9 +65,10 @@ Only active riders appear in the assignment selector. Riders cannot read other r
 5. Admin assigns an active rider before dispatch. Each rider can have only one active order at a time. Assignment is locked once the order is on the way.
 6. Once ready, the assigned rider can acknowledge pickup, which moves the order to **On the way**. Riders may also mark their on-the-way orders delivered. Only admins can cancel orders.
 7. Each status change records an event and uses an expected-status check to reject conflicting updates. Terminal states cannot be reopened.
-8. Customer tracking refreshes every 7 seconds while visible. The bearer token authorises only that order's summary and last rider location, never the customer's address or phone.
+8. Unpaid Mobile Money orders are blocked from progressing by a database trigger as well as the admin UI. Cancellation does not automatically refund money.
+9. Customer tracking refreshes every 7 seconds while visible. The bearer token authorises only that order's summary and last rider location, never the customer's address or phone.
 
-Orders sent by the new connected checkout are **not** device-only demos. The old local demo history is retained but clearly labelled and is never imported into the backend. The menu and prices still need owner approval. No payment, SMS, WhatsApp, email order notification or automatic delivery dispatch is integrated. Payment is recorded in the UI as cash on delivery; payment collection/reconciliation is not implemented.
+Orders sent by the new connected checkout are **not** device-only demos. The old local demo history is retained but clearly labelled and is never imported into the backend. The menu and prices still need owner approval. Cash on delivery and DGateway Mobile Money are integrated. Mobile Money orders cannot progress until payment is verified. No SMS, WhatsApp, email order notification or automatic delivery dispatch is integrated. See [payment operations](DGATEWAY_PAYMENTS.md) for timeout recovery and refund review.
 
 ## GPS workflow and limits
 

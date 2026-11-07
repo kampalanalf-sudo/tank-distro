@@ -1,3 +1,4 @@
+import { PaymentPanel } from "./Payments";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -233,7 +234,15 @@ export function RiderMap({
   );
 }
 
-export function TrackingCard({ id, token }: { id: string; token: string }) {
+export function TrackingCard({
+  id,
+  token,
+  initialPhone,
+}: {
+  id: string;
+  token: string;
+  initialPhone?: string;
+}) {
   const [tracking, setTracking] = useState<Tracking | null>(null);
   const [error, setError] = useState("");
   const [lastSync, setLastSync] = useState<string | null>(null);
@@ -312,6 +321,12 @@ export function TrackingCard({ id, token }: { id: string; token: string }) {
               </li>
             ))}
           </ul>
+          <PaymentPanel
+            order={tracking}
+            token={token}
+            initialPhone={initialPhone}
+            onUpdate={setTracking}
+          />
           {tracking.status !== "delivered" &&
             tracking.status !== "cancelled" && (
               <RiderMap
@@ -331,7 +346,8 @@ export function TrackingCard({ id, token }: { id: string; token: string }) {
         <summary>Private tracking details</summary>
         <p>
           Keep this code private. Anyone with the order ID and code can view
-          this delivery’s progress and rider location.
+          this delivery’s progress, payment status and rider location, or
+          request a payment. Never share it publicly.
         </p>
         <label>
           Order ID

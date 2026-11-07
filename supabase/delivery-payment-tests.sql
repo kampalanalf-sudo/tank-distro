@@ -1,0 +1,54 @@
+-- Project-owner, ROLLBACK ONLY. Simulates gateway results directly; NO network or money.
+begin;
+do $$
+declare
+ token text := encode(extensions.gen_random_bytes(32),'hex');
+ receipt jsonb; retry jsonb; p jsonb; again jsonb; p2 jsonb; t jsonb; rejected boolean; oid uuid;
+begin
+ receipt := public.place_delivery_order('Payment test','0772123456','Rollback test address','Kololo','', '[{"id":2,"quantity":2,"price":1}]',gen_random_uuid(),token,'mobile_money');
+ oid := (receipt->>'id')::uuid;
+ assert (receipt->>'total')::integer=49000;
+ assert receipt->>'payment_method'='mobile_money';
+ begin update public.delivery_orders set status='confirmed' where id=oid; raise exception 'TEST: unpaid advanced'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ begin perform public.claim_delivery_payment(oid,repeat('a',64),'0772123456'); raise exception 'TEST: bad token accepted'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ p := public.claim_delivery_payment(oid,token,'+256 772 123456');
+ assert (p->>'claimed')::boolean and p->>'phone'='256772123456' and (p->>'amount')::integer=49000;
+ again := public.claim_delivery_payment(oid,token,'0700123456');
+ assert p->>'id'=again->>'id' and not (again->>'claimed')::boolean;
+ begin perform public.choose_delivery_cash(oid,token); raise exception 'TEST: pending switched to cash'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ begin perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49001,'UGX','collect','completed',true); raise exception 'TEST: wrong amount accepted'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ begin perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'USD','collect','completed',true); raise exception 'TEST: wrong currency accepted'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ begin perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','payout','completed',true); raise exception 'TEST: wrong direction accepted'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ begin perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','completed',false); raise exception 'TEST: unverified success accepted'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','pending',false);
+ t := public.track_delivery_order(oid,token);
+ assert t->>'payment_status'='pending';
+ assert not (t->'payment' ? 'phone') and not (t ? 'address') and not (t ? 'phone');
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','failed',true);
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','pending',false);
+ assert (public.track_delivery_order(oid,token))->>'payment_status'='failed','Delayed pending response must not undo verified failure';
+ p2 := public.claim_delivery_payment(oid,token,'0772123456');
+ assert p2->>'id'<>p->>'id';
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','failed',true);
+ assert (public.track_delivery_order(oid,token))->>'payment_status'='pending','Old failure must not hide new pending attempt';
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','completed',true);
+ t := public.track_delivery_order(oid,token);
+ assert t->>'payment_status'='paid' and (t->>'payment_review_required')::boolean;
+ assert t->'payment'->>'id'=p->>'id','Tracking must show settled reference';
+ perform public.apply_delivery_gateway_result((p2->>'id')::uuid,'TEST-REF-B',49000,'UGX','collect','failed',true);
+ assert (public.track_delivery_order(oid,token))->>'payment_status'='paid','Other failed attempts must never downgrade paid';
+ perform public.apply_delivery_gateway_result((p2->>'id')::uuid,'TEST-REF-B',49000,'UGX','collect','completed',true);
+ assert (select count(*) from public.delivery_payments where order_id=oid and status='completed')=2,'Record both real settlements for refund review';
+ perform public.apply_delivery_gateway_result((p->>'id')::uuid,'TEST-REF-A',49000,'UGX','collect','failed',true);
+ assert (public.track_delivery_order(oid,token))->>'payment_status'='paid';
+ update public.delivery_orders set status='confirmed' where id=oid;
+ update public.delivery_orders set status='cancelled' where id=oid;
+ begin perform public.claim_delivery_payment(oid,token,'0772123456'); raise exception 'TEST: cancelled order charged'; exception when others then assert sqlerrm not like 'TEST:%'; end;
+ assert not has_function_privilege('anon','public.claim_delivery_payment(uuid,text,text)','EXECUTE');
+ assert not has_function_privilege('authenticated','public.apply_delivery_gateway_result(uuid,text,integer,text,text,text,boolean)','EXECUTE');
+ assert not has_function_privilege('anon','public.create_delivery_order_base(text,text,text,text,text,jsonb,uuid,text)','EXECUTE');
+ assert not has_function_privilege('anon','public.track_delivery_order_base(uuid,text)','EXECUTE');
+ assert not has_table_privilege('anon','public.delivery_payments','SELECT');
+end $$;
+rollback;
+select 'Payment assertions passed. All fixtures rolled back. No provider requests or charges.' as result;
