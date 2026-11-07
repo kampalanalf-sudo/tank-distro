@@ -1,4 +1,4 @@
-name: ci
+name: App checks
 
 on:
   push:
@@ -15,9 +15,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm test
       - run: npm run typecheck
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:
-          name: iuea-community-radio-dist
+          name: juicy-chicken-dist
           path: dist/
